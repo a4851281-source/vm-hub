@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Hub • Twój Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .vm-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .vm-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .status-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        .user-avatar {
+            transition: all 0.2s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+            <div class="p-6 border-b border-zinc-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">V</div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">VM Hub</h1>
+                        <p class="text-xs text-zinc-500">Twój serwer wirtualny</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="flex items-center gap-3 px-4 py-3 bg-zinc-800 rounded-3xl">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-semibold">WJ</div>
+                    <div>
+                        <p class="font-semibold">Właściciel: Wojciech Janowski</p>
+                        <p class="text-xs text-emerald-400">Online • Admin</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 px-3 py-4">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-zinc-800 rounded-2xl mb-1 active">
+                    <i class="fa-solid fa-house w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-zinc-800 rounded-2xl mb-1">
+                    <i class="fa-solid fa-server w-5"></i>
+                    <span class="font-medium">Wszystkie VM</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-zinc-800 rounded-2xl mb-1">
+                    <i class="fa-solid fa-users w-5"></i>
+                    <span class="font-medium">Współdzielone</span>
+                    <span class="ml-auto bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">12</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-zinc-800 rounded-2xl">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span class="font-medium">Statystyki</span>
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-zinc-800">
+                <button onclick="showAddModal()" 
+                        class="w-full bg-white text-black font-semibold py-4 px-6 rounded-3xl flex items-center justify-center gap-3 hover:bg-white/90 transition-all active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Dodaj nową maszynę wirtualną</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Top bar -->
+            <div class="bg-zinc-900 border-b border-zinc-800 px-8 py-5 flex items-center justify-between sticky top-0 z-50">
+                <div class="flex items-center gap-8">
+                    <h2 class="text-3xl font-semibold tracking-tight">Twoje Maszyny Wirtualne</h2>
+                    <div class="bg-zinc-800 text-zinc-400 text-sm px-4 py-2 rounded-3xl flex items-center gap-2">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full status-dot"></div>
+                        18 maszyn aktywnych
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="relative">
+                        <input type="text" id="search" 
+                               class="bg-zinc-800 border border-zinc-700 focus:border-blue-500 w-80 pl-12 py-3 rounded-3xl text-sm outline-none"
+                               placeholder="Szukaj maszyny...">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-zinc-500"></i>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 bg-zinc-800 rounded-3xl p-1">
+                        <button onclick="toggleView(this)" class="active px-5 py-2 rounded-3xl text-sm font-medium">Kafelki</button>
+                        <button onclick="toggleView(this)" class="px-5 py-2 rounded-3xl text-sm font-medium">Lista</button>
+                    </div>
+                    
+                    <div class="w-9 h-9 bg-zinc-700 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-zinc-600">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VMs Grid -->
+            <div class="p-8" id="vm-grid">
+                <!-- Karty będą dodawane przez JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add VM Modal -->
+    <div id="addModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div class="bg-zinc-900 w-full max-w-lg mx-4 rounded-3xl overflow-hidden">
+            <div class="px-8 py-6 border-b border-zinc-700 flex items-center justify-between">
+                <h3 class="text-2xl font-semibold">Dodaj nową maszynę wirtualną</h3>
+                <button onclick="hideAddModal()" class="text-3xl leading-none text-zinc-500 hover:text-white">×</button>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Nazwa maszyny</label>
+                    <input id="vm-name" type="text" 
+                           class="w-full bg-zinc-800 border border-zinc-700 focus:border-blue-500 rounded-2xl px-5 py-4 outline-none"
+                           placeholder="np. Serwer Minecraft">
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Typ hypervisora</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="selectType(this)" data-type="virtualbox" 
+                                class="type-btn border border-zinc-700 hover:border-orange-500 rounded-2xl p-4 text-center transition-all">
+                            <i class="fa-brands fa-linux text-3xl mb-2 text-orange-500"></i>
+                            <p class="font-medium">VirtualBox</p>
+                        </button>
+                        <button onclick="selectType(this)" data-type="vmware" 
+                                class="type-btn border border-zinc-700 hover:border-blue-500 rounded-2xl p-4 text-center transition-all">
+                            <i class="fa-solid fa-server text-3xl mb-2 text-blue-500"></i>
+                            <p class="font-medium">VMware</p>
+                        </button>
+                        <button onclick="selectType(this)" data-type="hyperv" 
+                                class="type-btn border border-zinc-700 hover:border-emerald-500 rounded-2xl p-4 text-center transition-all">
+                            <i class="fa-solid fa-microsoft text-3xl mb-2 text-emerald-500"></i>
+                            <p class="font-medium">Hyper-V</p>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Opis / Zastosowanie</label>
+                    <textarea id="vm-desc" rows="3"
+                              class="w-full bg-zinc-800 border border-zinc-700 focus:border-blue-500 rounded-3xl px-5 py-4 outline-none resize-none"
+                              placeholder="Serwer do testów aplikacji..."></textarea>
+                </div>
+                
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm text-zinc-400 mb-2">RAM (GB)</label>
+                        <input id="vm-ram" type="number" value="8" 
+                               class="w-full bg-zinc-800 border border-zinc-700 focus:border-blue-500 rounded-2xl px-5 py-4 outline-none">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-zinc-400 mb-2">CPU rdzenie</label>
+                        <input id="vm-cpu" type="number" value="4" 
+                               class="w-full bg-zinc-800 border border-zinc-700 focus:border-blue-500 rounded-2xl px-5 py-4 outline-none">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-8 border-t border-zinc-700 flex gap-4">
+                <button onclick="hideAddModal()" 
+                        class="flex-1 py-4 text-zinc-400 font-medium border border-zinc-700 rounded-3xl hover:bg-zinc-800">
+                    Anuluj
+                </button>
+                <button onclick="addNewVM()" 
+                        class="flex-1 py-4 bg-gradient-to-r from-blue-500 to-purple-600 font-semibold rounded-3xl hover:brightness-110 transition-all">
+                    Dodaj maszynę
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Przykładowe dane
+        let vms = [
+            {
+                id: 1,
+                name: "Serwer Minecraft",
+                type: "virtualbox",
+                status: "online",
+                users: ["Kuba", "Olek", "Michał"],
+                ram: "12 GB",
+                cpu: "6 rdzeni"
+            },
+            {
+                id: 2,
+                name: "Testy Windows",
+                type: "hyperv",
+                status: "online",
+                users: ["Wojtek", "Ania"],
+                ram: "16 GB",
+                cpu: "8 rdzeni"
+            },
+            {
+                id: 3,
+                name: "Dev Environment",
+                type: "vmware",
+                status: "offline",
+                users: ["Patryk"],
+                ram: "8 GB",
+                cpu: "4 rdzeni"
+            }
+        ]
+        
+        function getTypeIcon(type) {
+            if (type === "virtualbox") return `<span class="text-orange-500">VB</span>`
+            if (type === "vmware") return `<span class="text-blue-500">VM</span>`
+            return `<span class="text-emerald-500">HV</span>`
+        }
+        
+        function renderVMs() {
+            const grid = document.getElementById('vm-grid')
+            grid.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${vms.map(vm => `
+                        <div class="vm-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+                            <div class="h-2 bg-gradient-to-r ${vm.type === 'virtualbox' ? 'from-orange-500 to-amber-500' : vm.type === 'vmware' ? 'from-blue-500 to-cyan-500' : 'from-emerald-500 to-teal-500'}"></div>
+                            
+                            <div class="p-6">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="flex items-center gap-3">
+                                            ${getTypeIcon(vm.type)}
+                                            <h3 class="text-xl font-semibold">${vm.name}</h3>
+                                        </div>
+                                        <p class="text-zinc-500 text-sm mt-1">${vm.ram} • ${vm.cpu}</p>
+                                    </div>
+                                    <div class="px-4 py-1 rounded-3xl text-xs font-medium ${vm.status === 'online' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">
+                                        ${vm.status === 'online' ? 'Online' : 'Offline'}
+                                    </div>
+                                </div>
+                                
+                                <!-- Użytkownicy -->
+                                <div class="mt-8">
+                                    <p class="text-xs text-zinc-500 mb-3">UŻYTKOWNICY (${vm.users.length})</p>
+                                    <div class="flex -space-x-3">
+                                        ${vm.users.map((user, i) => `
+                                            <div onclick="showUserTooltip(event, '${user}')" 
+                                                 class="user-avatar w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-xs font-bold border-2 border-zinc-900 cursor-pointer">
+                                                ${user[0]}
+                                            </div>
+                                        `).join('')}
+                                        <div onclick="shareVM(${vm.id})" 
+                                             class="w-9 h-9 bg-zinc-700 hover:bg-zinc-600 rounded-2xl flex items-center justify-center text-white text-xl border-2 border-zinc-900 cursor-pointer transition-colors">
+                                            +
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-zinc-800 bg-zinc-950 px-6 py-4 flex items-center justify-between text-sm">
+                                <button onclick="connectToVM(${vm.id})" 
+                                        class="flex items-center gap-2 text-blue-400 hover:text-blue-300">
+                                    <i class="fa-solid fa-plug"></i>
+                                    <span>Połącz</span>
+                                </button>
+                                <button onclick="editVM(${vm.id})" class="text-zinc-400 hover:text-white">
+                                    <i class="fa-solid fa-gear"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `
+        }
+        
+        function showAddModal() {
+            document.getElementById('addModal').classList.remove('hidden')
+            document.getElementById('addModal').classList.add('flex')
+        }
+        
+        function hideAddModal() {
+            document.getElementById('addModal').classList.add('hidden')
+            document.getElementById('addModal').classList.remove('flex')
+        }
+        
+        let selectedType = null
+        
+        function selectType(el) {
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-zinc-800')
+            })
+            el.classList.add('border-blue-500', 'bg-zinc-800')
+            selectedType = el.dataset.type
+        }
+        
+        function addNewVM() {
+            const name = document.getElementById('vm-name').value || "Nowa maszyna"
+            if (!selectedType) {
+                alert("Wybierz typ hypervisora!")
+                return
+            }
+            
+            vms.unshift({
+                id: Date.now(),
+                name: name,
+                type: selectedType,
+                status: "online",
+                users: ["Wojtek"],
+                ram: document.getElementById('vm-ram').value + " GB",
+                cpu: document.getElementById('vm-cpu').value + " rdzeni"
+            })
+            
+            hideAddModal()
+            renderVMs()
+            
+            // Reset
+            document.getElementById('vm-name').value = ''
+            selectedType = null
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('border-blue-500', 'bg-zinc-800'))
+        }
+        
+        function showUserTooltip(e, name) {
+            const tooltip = document.createElement('div')
+            tooltip.style.position = 'absolute'
+            tooltip.style.left = e.pageX + 15 + 'px'
+            tooltip.style.top = e.pageY + 10 + 'px'
+            tooltip.style.backgroundColor = '#18181b'
+            tooltip.style.border = '1px solid #3b82f6'
+            tooltip.style.padding = '8px 16px'
+            tooltip.style.borderRadius = '9999px'
+            tooltip.style.zIndex = '1000'
+            tooltip.style.whiteSpace = 'nowrap'
+            tooltip.textContent = name
+            document.body.appendChild(tooltip)
+            
+            setTimeout(() => tooltip.remove(), 1800)
+        }
+        
+        function shareVM(id) {
+            alert(`Maszyna ${id} — udostępnianie włączone!\nMożesz dodać więcej użytkowników.`)
+        }
+        
+        function connectToVM(id) {
+            alert(`Łączenie z maszyną #${id}... (symulacja)`)
+        }
+        
+        function editVM(id) {
+            alert(`Edycja maszyny #${id}`)
+        }
+        
+        function toggleView(btn) {
+            document.querySelectorAll('.flex.items-center.gap-2 button').forEach(b => b.classList.remove('active'))
+            btn.classList.add('active')
+        }
+        
+        // Inicjalizacja
+        window.onload = () => {
+            renderVMs()
+            
+            // Demo: dodaj nową maszynę po 3 sekundach
+            setTimeout(() => {
+                if (vms.length < 5) {
+                    vms.push({
+                        id: 999,
+                        name: "Ubuntu Server 24.04",
+                        type: "virtualbox",
+                        status: "online",
+                        users: ["Kasia", "Tomek"],
+                        ram: "6 GB",
+                        cpu: "4 rdzeni"
+                    })
+                    renderVMs()
+                }
+            }, 3000)
+        }
+    </script>
+</body>
+</html>
